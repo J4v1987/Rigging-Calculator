@@ -11,7 +11,17 @@
 
     <main class="max-w-2xl mx-auto my-10 p-6 bg-white rounded-lg shadow">
         <h1 class="text-2xl font-bold mb-4">4x4 Algebraic System Solver</h1>
-        
+        <div class="mb-6">
+            <label for="userInput" class="block text-sm font-semibold text-gray-600 mb-2">
+                Numerical Input Only:
+            </label>
+            <input 
+                id="userInput" 
+                type="text" 
+                placeholder="Type a calculation string..." 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+        </div>
         <button id="calcBtn" class="bg-blue-600 text-white px-4 py-2 rounded">
             Calculate & Download PDF
         </button>
@@ -21,10 +31,39 @@
         // Your JavaScript syntax lives safely inside this isolated block
         document.getElementById('calcBtn').addEventListener('click', async () => {
             
-            // Step A: Grab inputs from HTML
-            // Step B: Solve 4x4 matrix using math.js
-            // Step C: Generate PDF report using pdf-lib
-            console.log("Calculations auditable and verified!");
+            // 1. Capture the string from the HTML DOM using standard JS
+            const rawString = document.getElementById('userInput').value;
+            
+            // Fallback default text if the user leaves the input blank
+            const textToPrint = rawString || "No data entered by user.";
+
+            // 2. Initialize a blank PDF using the global PDFLib object
+            const pdfDoc = await PDFLib.PDFDocument.create();
+
+            // 3. Add a page (A4 dimensions in points: 595 x 842)
+            const page = pdfDoc.addPage([595, 842]);
+            const { width, height } = page.getSize();
+
+            // 4. Use the drawText function to print the captured string
+            page.drawText(`Auditable Calculation Input: ${textToPrint}`, {
+                x: 50,                   // 50 points from the left edge
+                y: height - 100,         // 100 points down from the TOP edge
+                size: 16,                // Font size in points
+                color: PDFLib.rgb(0.1, 0.1, 0.1), // Near black
+            });
+
+            // 5. Serialize the PDF document to bytes (Uint8Array)
+            const pdfBytes = await pdfDoc.save();
+
+            // 6. Trigger a native browser file download using a temporary anchor link
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "Calculation_Report_Test.pdf";
+            link.click();
+            
+            // Clean up memory
+            URL.revokeObjectURL(link.href);
             
         });
     </script>
